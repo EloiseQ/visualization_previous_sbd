@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SBD Execution Timeline — Apr 28 Super Brand Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#F8FAFC;color:#0F172A;-webkit-font-smoothing:antialiased;font-size:11px}
+
+.page{max-width:1280px;margin:0 auto;padding:20px 20px 24px;min-height:100vh}
+.layout{display:grid;grid-template-columns:1fr 200px;gap:16px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+.hdr{margin-bottom:12px}
+.hdr h1{font-size:18px;font-weight:800;letter-spacing:-.2px;color:#1E293B}
+.hdr p{font-size:10px;color:#64748B;margin-top:2px}
+
+.main{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden}
+
+/* Chart - aligned with strips */
+.chart-wrap{position:relative;padding:12px 16px 8px 0;margin-left:100px;margin-right:16px}
+.chart-wrap #main-chart{width:100%;height:220px}
+.stage-headers{display:flex;margin-top:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#475569;margin-left:16px;margin-right:0}
+.stage-headers .stage{flex:1;text-align:center;line-height:1.2}
+
+/* Execution strips - consistent structure */
+.strips{display:flex;flex-direction:column;gap:0;border-top:1px solid #E2E8F0}
+.strip{display:grid;grid-template-columns:100px 1fr;align-items:center;min-height:28px;border-bottom:1px solid #F1F5F9;font-size:9px}
+.strip:last-child{border-bottom:none}
+.strip-name{font-weight:600;color:#64748B;padding:6px 8px 6px 16px;background:#FAFBFC;font-size:9px}
+.strip-timeline{position:relative;height:20px;margin:4px 16px 4px 0}
+.strip-bar{position:absolute;height:16px;border-radius:4px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:visible;padding:0 5px;line-height:1;min-width:28px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.strip-bar.traffic{background:#7C3AED}
+.strip-bar.conversion{background:#3B82F6}
+.strip-bar.crm{background:#059669}
+.strip-bar.inventory{background:#D97706}
+.strip-bar.reporting{background:#64748B}
+
+/* Milestones - two-row stagger to reduce crowding */
+.milestones{position:relative;height:68px;padding:10px 16px 14px 0;background:#F8FAFC;border-top:1px solid #E2E8F0;margin:0 16px 0 100px}
+.milestone{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;transform:translateX(-50%);font-size:9px;font-weight:600;color:#475569;min-width:52px}
+.milestone .date{color:#64748B;font-weight:500;font-size:8px}
+.milestone .label{font-size:8px;text-transform:uppercase;letter-spacing:.2px;text-align:center;white-space:nowrap}
+.milestone::before{content:'';position:absolute;left:50%;margin-left:-.5px;width:1px;height:6px;background:#94A3B8;opacity:.5}
+.milestone-top{top:8px}
+.milestone-top::before{top:-8px}
+.milestone-bottom{top:36px}
+.milestone-bottom::before{top:-8px}
+
+/* Summary cards - standardized hierarchy */
+.sidebar{display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:14px 16px;border:1px solid #F1F5F9}
+.card .k{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94A3B8;margin-bottom:4px}
+.card .v{font-size:18px;font-weight:800;color:#1E293B;line-height:1.2;letter-spacing:-.3px}
+.card .d{font-size:9px;color:#64748B;margin-top:4px;line-height:1.4}
+.card.highlight .v{color:#3B82F6}
+.card.peak .v{color:#DC2626}
+
+.foot{font-size:9px;color:#94A3B8;text-align:center;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <h1>SBD Execution Timeline — Apr 28 Super Brand Day</h1>
+  <p>Kind Patches · Strategy roadmap · $1.12M GMV · $656K budget ($638K + $18K Launch Test)</p>
+</div>
+
+<div class="layout">
+  <div class="main">
+
+    <div class="chart-wrap">
+      <div id="main-chart"></div>
+      <div class="stage-headers">
+        <span class="stage">Baseline Control</span>
+        <span class="stage">Pre-Campaign</span>
+        <span class="stage">Ramp</span>
+        <span class="stage">Campaign Week</span>
+        <span class="stage">Post-Campaign Recovery</span>
+        <span class="stage">Stabilized</span>
+      </div>
+    </div>
+
+    <div class="strips">
+      <div class="strip"><div class="strip-name">Traffic</div><div class="strip-timeline" id="lane-traffic"></div></div>
+      <div class="strip"><div class="strip-name">Conversion</div><div class="strip-timeline" id="lane-conversion"></div></div>
+      <div class="strip"><div class="strip-name">CRM</div><div class="strip-timeline" id="lane-crm"></div></div>
+      <div class="strip"><div class="strip-name">Inventory</div><div class="strip-timeline" id="lane-inventory"></div></div>
+      <div class="strip"><div class="strip-name">Reporting</div><div class="strip-timeline" id="lane-reporting"></div></div>
+    </div>
+
+    <div class="milestones" id="milestones">
+      <div class="milestone" data-date="2026-04-07"><span class="date">Apr 7</span><span class="label">T-3 Start</span></div>
+      <div class="milestone" data-date="2026-04-27"><span class="date">Apr 27</span><span class="label">Traffic ON</span></div>
+      <div class="milestone" data-date="2026-04-28"><span class="date">Apr 28</span><span class="label">SBD Start</span></div>
+      <div class="milestone" data-date="2026-05-01"><span class="date">May 1</span><span class="label">Peak Day</span></div>
+      <div class="milestone" data-date="2026-05-04"><span class="date">May 4</span><span class="label">SBD End</span></div>
+      <div class="milestone" data-date="2026-05-12"><span class="date">May 12</span><span class="label">Stabilized</span></div>
+    </div>
+
+  </div>
+
+  <div class="sidebar">
+    <div class="card peak">
+      <div class="k">Peak Day</div>
+      <div class="v">$196K</div>
+      <div class="d">May 1 target · Highest single-day GMV</div>
+    </div>
+    <div class="card">
+      <div class="k">SBD Uplift vs Baseline</div>
+      <div class="v">3.0×</div>
+      <div class="d">Campaign week daily vs T-3 baseline avg</div>
+    </div>
+    <div class="card">
+      <div class="k">Stabilized vs Baseline</div>
+      <div class="v">+6.1%</div>
+      <div class="d">Post-SBD lasting lift vs T-3 baseline</div>
+    </div>
+    <div class="card">
+      <div class="k">Traffic Layer</div>
+      <div class="v">$17K</div>
+      <div class="d">Apr 27 – May 4 · Upper-funnel support</div>
+    </div>
+    <div class="card">
+      <div class="k">Campaign-Week ROI</div>
+      <div class="v">1.7–2.2×</div>
+      <div class="d">ROI band · ~$88K/day spend</div>
+    </div>
+    <div class="card highlight">
+      <div class="k">Total SBD GMV</div>
+      <div class="v">$1.12M</div>
+      <div class="d">7 days · ~48K orders at $23.41 AOV</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">Planning estimate · Section 1 + Ads Framework · CRM/Inventory timing inferred · <strong>Product sync:</strong> Secondary Hero Launch (Super Green, +Berberine, Metabolic Quatra) = Launch Test Budget; launch test case</div>
+
+</div>
+
+<script>
+(function(){
+  var T0 = new Date('2026-04-04').getTime();
+  var TEND = new Date('2026-05-28').getTime();
+  var RANGE = TEND - T0;
+
+  function pct(d){
+    var t = new Date(d).getTime();
+    return Math.max(0, Math.min(100, ((t - T0) / RANGE) * 100));
+  }
+
+  var dates = [];
+  for (var d = new Date('2026-04-04'); d <= new Date('2026-05-28'); d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().slice(0,10));
+  }
+
+  var gmv = [44000,44000,44000,38500,38333,38167,38000,37875,37750,37625,37500,37417,37333,37250,37167,37083,37000,40000,43500,47000,51000,55000,60000,65000,107000,136000,172000,196000,193000,165000,140000,80000,72000,66000,60000,57333,54667,52000,51000,50000,49000,48000,47600,47200,46800,46400,46000,45800,45600,45400,45200,45000,44833,44667,44500];
+
+  var gmv3d = [];
+  for (var i = 0; i < gmv.length; i++) {
+    var sum = 0, n = 0;
+    for (var j = Math.max(0, i - 2); j <= Math.min(gmv.length - 1, i + 2); j++) { sum += gmv[j]; n++; }
+    gmv3d.push(Math.round(sum / n));
+  }
+
+  var baseline = 44000, stabilized = 44700, campaignAvg = 160000;
+
+  var traces = [
+    {x:dates,y:gmv,type:'scatter',mode:'lines',name:'Daily GMV',line:{color:'rgba(59,130,246,0.35)',width:1.5,shape:'spline'},yaxis:'y',hovertemplate:'%{x|%b %d}: $%{y:,.0f}<extra></extra>'},
+    {x:dates,y:gmv3d,type:'scatter',mode:'lines',name:'3d avg',line:{color:'#1E40AF',width:2.5,shape:'spline'},yaxis:'y',hovertemplate:'3d avg: $%{y:,.0f}<extra></extra>'},
+    {x:['2026-04-04','2026-05-28'],y:[baseline,baseline],type:'scatter',mode:'lines',name:'T-3 Baseline Avg',line:{color:'#64748B',dash:'dash',width:1.5},yaxis:'y',showlegend:false,hovertemplate:'T-3 Baseline Avg: $44K<extra></extra>'},
+    {x:['2026-04-04','2026-05-28'],y:[campaignAvg,campaignAvg],type:'scatter',mode:'lines',name:'Campaign avg',line:{color:'#EF4444',dash:'dot',width:1},yaxis:'y',showlegend:false,hovertemplate:'Campaign avg: $160K<extra></extra>'},
+    {x:['2026-04-04','2026-05-28'],y:[stabilized,stabilized],type:'scatter',mode:'lines',name:'Stabilized',line:{color:'#22C55E',dash:'dash',width:1},yaxis:'y',showlegend:false,hovertemplate:'Stabilized: $45K<extra></extra>'}
+  ];
+
+  var shapes = [
+    {type:'rect',x0:'2026-04-04',x1:'2026-04-07',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(148,163,184,0.18)',line:{width:0},layer:'below'},
+    {type:'rect',x0:'2026-04-07',x1:'2026-04-21',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(124,58,237,0.1)',line:{width:0},layer:'below'},
+    {type:'rect',x0:'2026-04-21',x1:'2026-04-28',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(59,130,246,0.1)',line:{width:0},layer:'below'},
+    {type:'rect',x0:'2026-04-28',x1:'2026-05-05',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(239,68,68,0.12)',line:{width:0},layer:'below'},
+    {type:'rect',x0:'2026-05-05',x1:'2026-05-12',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(245,158,11,0.1)',line:{width:0},layer:'below'},
+    {type:'rect',x0:'2026-05-12',x1:'2026-05-29',y0:0,y1:1,xref:'x',yref:'paper',fillcolor:'rgba(34,197,94,0.08)',line:{width:0},layer:'below'}
+  ];
+
+  var annotations = [
+    {x:'2026-05-02',y:182000,xref:'x',yref:'y',text:'Peak $196K',showarrow:true,arrowhead:2,ax:-55,ay:8,font:{size:10,color:'#DC2626'},bgcolor:'#fff',bordercolor:'#FECACA',borderpad:4},
+    {x:'2026-04-12',y:37500,xref:'x',yref:'y',text:'Baseline control',showarrow:false,font:{size:8,color:'#64748B'},bgcolor:'rgba(255,255,255,0.85)',borderpad:3,bordercolor:'#E2E8F0'},
+    {x:'2026-04-25',y:58000,xref:'x',yref:'y',text:'ROI relaxation unlocks scale',showarrow:false,font:{size:8,color:'#94A3B8'},bgcolor:'rgba(255,255,255,0.85)',borderpad:3,bordercolor:'#E2E8F0'},
+    {x:'2026-05-20',y:44700,xref:'x',yref:'y',text:'+6.1% vs T-3 baseline',showarrow:false,font:{size:9,color:'#16A34A'},bgcolor:'rgba(255,255,255,0.9)',borderpad:4,bordercolor:'#BBF7D0'}
+  ];
+
+  var layout = {
+    height:220,margin:{t:8,b:8,l:52,r:12},
+    font:{family:'Inter',size:9},
+    paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+    showlegend:true,legend:{orientation:'h',y:1.02,x:0.02,xanchor:'left',font:{size:8},bgcolor:'rgba(255,255,255,0.95)',borderwidth:0},
+    hovermode:'x unified',
+    shapes:shapes,
+    annotations:annotations,
+    xaxis:{domain:[0,1],showticklabels:false,showgrid:false,anchor:'y',range:['2026-04-04','2026-05-28']},
+    yaxis:{tickprefix:'$',tickformat:',.0s',tickvals:[40000,80000,120000,160000,200000],tickfont:{size:10},gridcolor:'#F1F5F9',zeroline:false,range:[30000,220000]}
+  };
+
+  Plotly.newPlot('main-chart',traces,layout,{responsive:true,displayModeBar:false,staticPlot:false});
+
+  var lanes = [
+    {id:'lane-traffic',bars:[
+      {start:'2026-04-27',end:'2026-05-04',label:'Traffic ON · Support',class:'traffic'}
+    ]},
+    {id:'lane-conversion',bars:[
+      {start:'2026-04-07',end:'2026-04-21',label:'T-3 Tighten',class:'conversion'},
+      {start:'2026-04-21',end:'2026-04-28',label:'Ramp',class:'conversion'},
+      {start:'2026-04-28',end:'2026-05-05',label:'Scale',class:'conversion'},
+      {start:'2026-05-05',end:'2026-05-12',label:'Recovery',class:'conversion'},
+      {start:'2026-05-12',end:'2026-05-28',label:'Normalize',class:'conversion'}
+    ]},
+    {id:'lane-crm',bars:[
+      {start:'2026-04-21',end:'2026-04-28',label:'Preheat',class:'crm'},
+      {start:'2026-04-28',end:'2026-04-29',label:'Launch',class:'crm'},
+      {start:'2026-04-30',end:'2026-05-02',label:'Peak Push',class:'crm'},
+      {start:'2026-05-04',end:'2026-05-05',label:'Last Day',class:'crm'},
+      {start:'2026-05-05',end:'2026-05-12',label:'Retention',class:'crm'}
+    ]},
+    {id:'lane-inventory',bars:[
+      {start:'2026-04-07',end:'2026-04-14',label:'Audit',class:'inventory'},
+      {start:'2026-04-21',end:'2026-04-28',label:'Replenish Check',class:'inventory'},
+      {start:'2026-04-24',end:'2026-04-28',label:'Hero Watch',class:'inventory'},
+      {start:'2026-04-28',end:'2026-05-05',label:'Stock Monitor',class:'inventory'}
+    ]},
+    {id:'lane-reporting',bars:[
+      {start:'2026-04-07',end:'2026-04-14',label:'T-3 Review',class:'reporting'},
+      {start:'2026-04-24',end:'2026-04-27',label:'Pacing',class:'reporting'},
+      {start:'2026-05-01',end:'2026-05-02',label:'Mid-Campaign',class:'reporting'},
+      {start:'2026-05-05',end:'2026-05-12',label:'Readout',class:'reporting'}
+    ]}
+  ];
+
+  document.querySelectorAll('.milestone[data-date]').forEach(function(m,i){
+    var d = m.getAttribute('data-date');
+    m.style.left = pct(d) + '%';
+    m.classList.add([0,2,4].indexOf(i)>=0 ? 'milestone-top' : 'milestone-bottom');
+  });
+
+  lanes.forEach(function(lane){
+    var el = document.getElementById(lane.id);
+    if (!el) return;
+    el.innerHTML = '';
+    var container = document.createElement('div');
+    container.style.cssText = 'position:relative;width:100%;height:100%';
+    lane.bars.forEach(function(bar){
+      var left = pct(bar.start);
+      var right = pct(bar.end);
+      var w = Math.max(4, right - left);
+      var b = document.createElement('div');
+      b.className = 'strip-bar ' + bar.class;
+      b.style.cssText = 'left:'+left+'%;width:'+w+'%';
+      b.textContent = bar.label;
+      b.title = bar.start + ' → ' + bar.end;
+      container.appendChild(b);
+    });
+    el.appendChild(container);
+  });
+})();
+</script>
+</body>
+</html>
